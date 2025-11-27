@@ -1,45 +1,35 @@
-from flask import Blueprint, request, jsonify, current_app
-from app.models import User, PromoCode
+from flask import Blueprint, request, current_app
 from app import db
-from app.telegram import tg_send
+from app.models import User
+import requests
 
-telegram_bp = Blueprint("telegram", __name__, url_prefix="/telegramWebhook")
+telegram_bp = Blueprint("telegram_bp", __name__)
 
-@telegram_bp.post("/")
+@telegram_bp.route("/telegramWebhook", methods=["POST"])
 def telegram_webhook():
     data = request.json
-    if "message" not in data:
-        return jsonify({"status": "ignored"})
+    if "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
 
-    msg = data["message"]
-    chat_id = msg["chat"]["id"]
-    text = msg.get("text", "")
-
-    if text.startswith("/start"):
-        promo_code = text.replace("/start", "").strip()
-        if not promo_code:
-            tg_send(chat_id, "Per favore invia un codice valido.")
-            return "ok"
-
-        promo_row = PromoCode.query.filter_by(code=promo_code).first()
-        if not promo_row:
-            tg_send(chat_id, "❌ Codice inesistente.")
-            return "ok"
-
-        # Collega chat_id all'utente
+        # Save chat_id if user sent promo code
+        promo_code = text.strip()
         user = User.query.filter_by(promo_code=promo_code).first()
         if user:
             user.chat_id = chat_id
-        else:
-            user = User(name="Utente", promo_code=promo_code, chat_id=chat_id)
-            db.session.add(user)
-        db.session.commit()
+            db.session.commit()
 
-        promo_row.redeemed = True
-        promo_row.assigned_user_id = user.id
-        db.session.commit()
+        # Notify owner
+        owner_chat_id = current_app.config["ADMIN_CHAT_ID"]
+        send_telegram(owner_chat_id, f"New chat_id received: {chat_id} for code {promo_code}")
 
-        tg_send(chat_id, "🎉 Benvenuto! Torna sul sito per completare la registrazione.")
-        return "ok"
+        # Reply to user
+        send_telegram(chat_id, "Torna sul sito per continuare la registrazione.")
 
-    return "ignored"
+    return "OK", 200
+
+
+def send_telegram(chat_id, text):
+    token = current_app.config["TELEGRAM_BOT_TOKEN"]
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    requests.post(url, data={"chat_id": chat_id, "text": text})
