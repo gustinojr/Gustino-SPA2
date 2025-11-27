@@ -1,4 +1,9 @@
-@app.route("/", methods=["GET", "POST"])
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from app.models import PromoCode, User
+
+home_bp = Blueprint("home", __name__)
+
+@home_bp.route("/", methods=["GET", "POST"])
 def home():
     if request.method == "POST":
         code = request.form.get("code", "").strip()
@@ -6,12 +11,11 @@ def home():
 
         if not promo:
             flash("❌ Codice non valido.")
-            return redirect(url_for("home"))
+            return redirect(url_for("home.home"))
 
-        # Se il promo è già stato collegato ad un chat_id → redirect automatico alla registrazione
         if promo.redeemed and promo.assigned_user_id:
-            return redirect(url_for("register", promo=promo.code))
+            return redirect(url_for("register.register", promo=promo.code))
 
-        return redirect(url_for("register", promo=promo.code))
+        return redirect(url_for("register.register", promo=promo.code))
 
-    return render_template("index.html", bot_username=BOT_USERNAME)
+    return render_template("index.html")
