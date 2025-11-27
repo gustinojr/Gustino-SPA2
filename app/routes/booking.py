@@ -36,8 +36,24 @@ def booking_page(user_id):
         db.session.add(reservation)
         db.session.commit()
 
-        tg_send(user.chat_id,
-                f"Ciao {user.name}, la tua prenotazione è confermata per il {date.strftime('%d/%m/%Y')} dalle {start.strftime('%H:%M')} alle {end.strftime('%H:%M')}.")
+       # Invio messaggio all’utente
+tg_send(
+    user.chat_id,
+    f"""Ciao {user.name},
+
+Grazie per aver prenotato presso Gustino SPA!
+La tua prenotazione è confermata per il {date.strftime('%d/%m/%Y')}
+dalle {start_time.strftime('%H:%M')} alle {end_time.strftime('%H:%M')}.
+
+A presto!"""
+)
+
+# Invio messaggio all’owner
+if OWNER_CHAT_ID:
+    tg_send(
+        OWNER_CHAT_ID,
+        f"📢 Nuova prenotazione!\nUtente: {user.name}\nData: {date}\nOrario: {start_time}-{end_time}"
+    )
 
         flash("Prenotazione completata!")
         return redirect(url_for("booking.booking_page", user_id=user.id))
