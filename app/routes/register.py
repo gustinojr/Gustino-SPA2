@@ -4,6 +4,14 @@ from app import db
 
 register_bp = Blueprint("register", __name__, url_prefix="/register")
 
+@register_bp.route("/check-chatid")
+def check_chatid():
+    code = request.args.get("code")
+    user = User.query.filter_by(promo_code=code).first()
+    if user and user.chat_id:
+        return jsonify({"redirect": url_for("register_bp.register", code=code)})
+    return jsonify({"redirect": None})
+    
 @register_bp.route("/<promo>", methods=["GET", "POST"])
 def register(promo):
     promo_row = PromoCode.query.filter_by(code=promo).first_or_404()
