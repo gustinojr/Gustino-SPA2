@@ -1,7 +1,13 @@
-@app.post("/telegramWebhook")
+from flask import Blueprint, request, jsonify, current_app
+from app.models import User, PromoCode
+from app import db
+from app.telegram import tg_send
+
+telegram_bp = Blueprint("telegram", __name__, url_prefix="/telegramWebhook")
+
+@telegram_bp.post("/")
 def telegram_webhook():
     data = request.json
-
     if "message" not in data:
         return jsonify({"status": "ignored"})
 
@@ -10,40 +16,30 @@ def telegram_webhook():
     text = msg.get("text", "")
 
     if text.startswith("/start"):
-        promo = text.replace("/start", "").strip()
-        promo_row = PromoCode.query.filter_by(code=promo).first()
+        promo_code = text.replace("/start", "").strip()
+        if not promo_code:
+            tg_send(chat_id, "Per favore invia un codice valido.")
+            return "ok"
 
+        promo_row = PromoCode.query.filter_by(code=promo_code).first()
         if not promo_row:
             tg_send(chat_id, "❌ Codice inesistente.")
             return "ok"
 
-        # assegna chat_id all’utente
-        user = User.query.filter_by(promo_code=promo).first()
-        if not user:
-            user = User(name="Utente", promo_code=promo, chat_id=chat_id)
-            db.session.add(user)
-            db.session.commit()  # serve per avere user.id
-        else:
+        # Collega chat_id all'utente
+        user = User.query.filter_by(promo_code=promo_code).first()
+        if user:
             user.chat_id = chat_id
-            db.session.commit()
+        else:
+            user = User(name="Utente", promo_code=promo_code, chat_id=chat_id)
+            db.session.add(user)
+        db.session.commit()
 
         promo_row.redeemed = True
         promo_row.assigned_user_id = user.id
         db.session.commit()
 
-        # Messaggio all’utente
         tg_send(chat_id, "🎉 Benvenuto! Torna sul sito per completare la registrazione.")
-
-        # Messaggio all’owner
-        if OWNER_CHAT_ID:
-            tg_send(
-                OWNER_CHAT_ID,
-                f"📢 Nuovo utente con codice promo {promo}!\nChat ID: {chat_id}"
-            )
-
-        # Non possiamo fare redirect dal webhook Telegram,
-        # ma la logica lato web è: quando l’utente ritorna sul sito e il promo code è stato usato,
-        # lo rimandiamo automaticamente a /register/<promo>
         return "ok"
 
     return "ignored"
