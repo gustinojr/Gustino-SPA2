@@ -2,20 +2,50 @@
 <html>
 <head>
     <title>Prenotazione - Gustino SPA</title>
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Prenotazione per {{ user.name }}</h1>
+<div class="container">
+    <h2>Prenotazione per {{ user.name }}</h2>
+
+    {% if user.reservations %}
+        <h3>Prenotazioni esistenti:</h3>
+        <ul>
+            {% for res in user.reservations %}
+                <li>{{ res.date.strftime('%d/%m/%Y') }} dalle {{ res.start_time.strftime('%H:%M') }} alle {{ res.end_time.strftime('%H:%M') }} - {{ res.service }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h3>Nuova Prenotazione</h3>
     <form method="POST">
         <label>Data:</label>
         <input type="date" name="date" required>
-        <label>Orario Inizio:</label>
+
+        <label>Ora inizio:</label>
         <input type="time" name="start_time" required>
-        <label>Orario Fine:</label>
+
+        <label>Ora fine:</label>
         <input type="time" name="end_time" required>
+
         <label>Servizio:</label>
-        <input type="text" name="service" required>
+        <input type="text" name="service" placeholder="Massaggio, SPA ecc." required>
+
         <button type="submit">Prenota</button>
     </form>
+
+    <p>Chatta con il nostro bot Telegram:</p>
+    <a href="https://t.me/{{ bot_username }}" target="_blank">
+        <button type="button">Apri Telegram Bot</button>
+    </a>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="flash">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 </body>
 </html>
