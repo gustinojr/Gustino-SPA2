@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models import PromoCode, User
+from app.models import PromoCode
 
 home_bp = Blueprint("home", __name__)
 
@@ -13,6 +13,7 @@ def home():
             flash("❌ Codice non valido.")
             return redirect(url_for("home.home"))
 
+        # Promo già associato a user → vai a registrazione
         if promo.redeemed and promo.assigned_user_id:
             return redirect(url_for("register.register", promo=promo.code))
 
