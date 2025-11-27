@@ -2,13 +2,16 @@
 <html>
 <head>
     <title>Gustino SPA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Benvenuto su Gustino SPA</h1>
-    <form method="POST">
-        <input type="text" name="code" placeholder="Inserisci il tuo codice promo" required>
-        <button type="submit">Invia</button>
-    </form>
-    <p>Chatta con il nostro bot Telegram: <b>{{ bot_username }}</b></p>
+    <div class="container">
+        <h2>Benvenuto su Gustino SPA</h2>
+        <form method="POST">
+            <input type="text" name="code" placeholder="Inserisci il tuo codice promo" required>
+            <button type="submit">Invia</button>
+        </form>
+        <p>Chatta con il nostro bot Telegram: <b>{{ bot_username }}</b></p>
+    </div>
 </body>
 </html>
