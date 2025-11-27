@@ -1,13 +1,16 @@
-from flask import Blueprint, render_template, request, redirect, url_for, current_app
-from ..models import PromoCode, User
-from .. import db
+from flask import Blueprint, render_template, request, redirect, url_for
+from app.models import User, PromoCode
+from app import db
 
-register_bp = Blueprint("register", __name__)
+register_bp = Blueprint("register", __name__, url_prefix="/register")
 
-@register_bp.route("/register/<promo>", methods=["GET", "POST"])
-def register_user(promo):
+@register_bp.route("/<promo>", methods=["GET", "POST"])
+def register(promo):
     promo_row = PromoCode.query.filter_by(code=promo).first_or_404()
-    user = User.query.get(promo_row.assigned_user_id) if promo_row.assigned_user_id else None
+    user = None
+
+    if promo_row.assigned_user_id:
+        user = User.query.get(promo_row.assigned_user_id)
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -20,10 +23,6 @@ def register_user(promo):
 
         promo_row.redeemed = True
         db.session.commit()
+        return redirect(url_for("booking.booking", user_id=user.id))
 
-        return redirect(url_for("booking.booking_page", user_id=user.id))
-
-    return render_template("registration.html",
-                           promo=promo,
-                           user=user,
-                           bot_username=current_app.config["TELEGRAM_BOT_USERNAME"])
+    return render_template("registration.html", promo=promo, user=user)
