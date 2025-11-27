@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-    <title>Gustino SPA</title>
+    <meta charset="UTF-8">
+    <title>Gustino SPA - Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 <div class="container">
     <h2>Benvenuto su Gustino SPA</h2>
-    <form method="POST">
-        <input type="text" name="code" placeholder="Inserisci il tuo codice promo" required>
-        <button type="submit">Invia</button>
-    </form>
-    <p>Chatta con il nostro bot Telegram:</p>
+    <p>Per iniziare, apri il nostro bot Telegram per ottenere il tuo codice chat.</p>
+
     <a href="https://t.me/{{ bot_username }}" target="_blank">
         <button type="button">Apri Telegram Bot</button>
     </a>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="flash">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 </div>
 </body>
 </html>
