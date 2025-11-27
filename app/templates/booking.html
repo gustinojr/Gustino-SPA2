@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prenotazione - Gustino SPA</title>
+</head>
+<body>
+    <h1>Prenotazione per {{ user.name }}</h1>
+    <form method="POST">
+        <label>Data:</label>
+        <input type="date" name="date" required>
+        <label>Orario Inizio:</label>
+        <input type="time" name="start_time" required>
+        <label>Orario Fine:</label>
+        <input type="time" name="end_time" required>
+        <label>Servizio:</label>
+        <input type="text" name="service" required>
+        <button type="submit">Prenota</button>
+    </form>
+</body>
+</html>
